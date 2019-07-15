@@ -2,11 +2,13 @@ import csv
 
 
 class StandardWorkday(object):
-    def __init__(self, day_of_week, workday_type, start_time, end_time):
+    def __init__(self, day_of_week, code, workday_type, working_time, guaranteed_time, not_paid_time):
         self.day_of_week = day_of_week
+        self.code = code
         self.workday_kind = workday_type
-        self.start_time = start_time
-        self.end_time = end_time
+        self.working_ime = working_time
+        self.guaranteed_time = guaranteed_time
+        self.not_paid_time = not_paid_time
 
 
 class StandardWorkdayImportation(object):
