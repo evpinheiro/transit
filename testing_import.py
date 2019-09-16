@@ -1,5 +1,6 @@
 
-import venv.brain.standard_workday.StandardWorkdayImportation as swi
+from .venv.standard_workday import *
 
-swImport = swi()
-#print(swImport.importing_standard_workday("sunday", "/home/eder/py-workspace/rostering/atual-domingo"))
+swImport = StandardWorkday()
+sw_list = swImport.importing_standard_workday("sunday", "/home/eder/py-workspace/rostering/atual-domingo")
+print(sw_list[0])
