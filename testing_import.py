@@ -1,6 +1,5 @@
+import workday as wk
 
-from .venv.standard_workday import *
-
-swImport = StandardWorkday()
-sw_list = swImport.importing_standard_workday("sunday", "/home/eder/py-workspace/rostering/atual-domingo")
-print(sw_list[0])
+sw_list = wk.import_workdays("sunday", "/home/eder/py-workspace/rostering/atual-domingo.csv")
+for wkd in sw_list:
+    print(wkd.show_workday_description())
