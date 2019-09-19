@@ -1,5 +1,5 @@
-from deal_with_time import minutes, hour_minute
-from workday import Workday
+from deal_with_time import hour_minute
+from model.workday import Workday
 
 
 class WorkdaySequence:
