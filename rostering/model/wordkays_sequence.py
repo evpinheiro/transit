@@ -1,5 +1,5 @@
 from deal_with_time import hour_minute
-from model.workday import Workday
+from rostering.model.workday import Workday
 
 
 class WorkdaySequence:
