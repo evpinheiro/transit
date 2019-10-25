@@ -1,5 +1,5 @@
-from vehicle_scheduling.data.itinerary import Itinerary
-from vehicle_scheduling.data.scheduled_trip import ScheduledTrip
+from vehicle_scheduling.data_model.transport_network import Itinerary
+from vehicle_scheduling.data_model.scheduled_event import ScheduledTrip
 
 
 def import_trips(file_name):
