@@ -101,13 +101,14 @@ class SetPartitioning:
 
 if __name__ == '__main__':
     trips = ['trip1', 'trip2', 'trip3', 'trip4', 'trip5']
-    lambda_k1_d1 = Variable(15, "D1", [trips[0], trips[1], trips[2]])
-    lambda_k2_d1 = Variable(7, "D1", [trips[2]])
-    lambda_k1_d2 = Variable(12, "D2", [trips[3], trips[4]])
-    lambda_k2_d2 = Variable(8, "D2", [trips[3]])
-    lambda_k3_d2 = Variable(5, "D2", [trips[4]])
+    lambda_k1_d1 = Variable(0, "D1", [])
+    lambda_k2_d1 = Variable(23, "D1", [trips[1], trips[2], trips[3]])
+    lambda_k3_d1 = Variable(14, "D1", [trips[0], trips[1]])
+    lambda_k1_d2 = Variable(33, "D2", [trips[0], trips[1], trips[2], trips[3], trips[4]])
+    lambda_k2_d2 = Variable(12, "D2", [trips[3], trips[4]])
+    lambda_k3_d2 = Variable(11, "D2", [trips[0], trips[4]])
 
-    initial_vars = {"D1": [lambda_k1_d1, lambda_k2_d1], "D2": [lambda_k1_d2, lambda_k2_d2, lambda_k3_d2]}
+    initial_vars = {"D2": [lambda_k1_d2, lambda_k2_d2, lambda_k3_d2], "D1": [lambda_k1_d1, lambda_k2_d1, lambda_k3_d1]}
     relax = SetPartitioning(initial_vars, trips)
     relax.execute()
     print('optimal solution: ', relax.get_solution())

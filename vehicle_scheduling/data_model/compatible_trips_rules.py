@@ -66,7 +66,7 @@ class CompatibilityRules:
         deadhead = self.possible_deadheads.get_deadhead(trip1_destination, trip2_origin)
         if deadhead is None or trip2.start_time - trip1.end_time > deadhead.duration + min_layover_duration:
             return None
-        # resolver essa questão que não está certa aqui
+        # TODO resolver essa questão que não está certa aqui
         return ScheduledDeadheadTrip(deadhead, trip1.end_time, trip1.end_time + deadhead.duration)
 
 
