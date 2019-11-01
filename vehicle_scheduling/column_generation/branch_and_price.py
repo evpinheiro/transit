@@ -7,6 +7,16 @@ from vehicle_scheduling.data_model.transport_network import Deadhead, Itinerary
 from vehicle_scheduling.graph.building_connection_based_graph import build_graph
 
 
+class BranchAndPrice:
+
+    def __init__(self, pricing_problems: list):
+        self.sub_problems = pricing_problems
+        print("*-------------*")
+        for element in self.sub_problems:
+            print(element.network)
+            print("-------------")
+        print("*-------------*")
+
 
 if __name__ == '__main__':
     # transport network
@@ -36,8 +46,8 @@ if __name__ == '__main__':
     trips3 = ScheduledTrip(minutes("11:00"), minutes("12:20"), itinerary_TICEN_TICAN_221)
     trips4 = ScheduledTrip(minutes("09:00"), minutes("10:20"), itinerary_TICAN_TICEN_221)
     trips = [trips1, trips2, trips3, trips4]
-    network_depot1 = build_graph('garage1-common_vehicle', 2, trips, compatibility_rules)
-    network_depot2 = build_graph('garage1-common_vehicle', 2, trips, compatibility_rules)
+    network_depot1 = build_graph('garage1-vehicleType1', 2, trips, compatibility_rules)
+    network_depot2 = build_graph('garage2-vehicleType1', 2, trips, compatibility_rules)
     # network.arcs.sort(key=lambda _arc: _arc.origin_node.time)
     # for arc in network.arcs:
     #     print(arc)
@@ -46,8 +56,12 @@ if __name__ == '__main__':
     subproblem_depot2 = pricing_problem.Subproblem('Depot2')
 
     subproblem_depot1.build_network(network_depot1)
+    subproblem_depot2.build_network(network_depot2)
     # subproblem_depot1.update_arc_costs()
     subproblem_depot1.execute()
-    subproblem_depot1.get_solution()
-    subproblem_depot1.plot_network()
+    subproblem_depot2.execute()
+    # subproblem_depot1.plot_network()
+    # subproblem_depot2.plot_network()
+
+    branch_and_price = BranchAndPrice([subproblem_depot1, subproblem_depot2])
 

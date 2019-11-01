@@ -33,15 +33,13 @@ class Subproblem:
 
     def execute(self):
         solution = nx.min_cost_flow(self.network)
+        print("networkx o-d | original event | cost")
         for node_origen in solution.keys():
             for node_destination in solution[node_origen].keys():
                 print(node_origen, node_destination, "|",
                       self.network[node_origen][node_destination]['original_events'], "|",
                       solution[node_origen][node_destination])
-        print("------------")
-
-    def get_solution(self):
-        solution = nx.min_cost_flow(self.network)
+        print("solution arcs")
         for node_origen in solution.keys():
             for node_destination in solution[node_origen].keys():
                 if solution[node_origen][node_destination] > 0 or self.network[node_origen][node_destination]['capacity'] == 0:
@@ -49,6 +47,7 @@ class Subproblem:
                           self.network[node_origen][node_destination]['original_events'], "|",
                           solution[node_origen][node_destination])
                     self.network[node_origen][node_destination]['color'] = 'red' if solution[node_origen][node_destination] > 0 else 'green'
+        print("------------")
 
     def plot_network(self):
         edge_labels = {}
