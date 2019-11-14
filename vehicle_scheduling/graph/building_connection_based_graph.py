@@ -1,14 +1,15 @@
 from deal_with_time import minutes
+from vehicle_scheduling.graph.commodities_trips import Commodity
 from vehicle_scheduling.graph.graph import *
 from vehicle_scheduling.data_model.compatible_trips_rules import *
 
 
-def build_graph(garage_technology: str, garage_tec_capacity: int, _trips: ScheduledTrip,
-                _compatibility_rules: CompatibilityRules):
-    _graph = Graph(garage_technology)
+def build_graph(commodity: Commodity,
+                _compatibility_rules: CompatibilityRules) -> Graph:
+    _graph = Graph(commodity.commodity_name)
     trip_arcs = []
-    add_trip_arcs(garage_tec_capacity, _trips, trip_arcs, _graph)
-    add_connection_arcs(garage_tec_capacity, trip_arcs, _compatibility_rules, _graph)
+    add_trip_arcs(commodity.capacity, commodity.trips, trip_arcs, _graph)
+    add_connection_arcs(commodity.capacity, trip_arcs, _compatibility_rules, _graph)
     return _graph
 
 
@@ -81,10 +82,10 @@ if __name__ == '__main__':
     trips3 = ScheduledTrip(minutes("11:00"), minutes("12:20"), itinerary_TICEN_TICAN_221)
     trips4 = ScheduledTrip(minutes("09:00"), minutes("10:20"), itinerary_TICAN_TICEN_221)
     trips = [trips1, trips2, trips3, trips4]
-    graph = build_graph('garage1-common_vehicle', 10, trips, compatibility_rules)
+    graph = build_graph(Commodity('garage1-common_vehicle', 10, trips), compatibility_rules)
     # network.arcs.sort(key=lambda _arc: _arc.origin_node.time)
     for node in graph.nodes:
         print(node)
     print("------------")
-    for e in graph.arcs:
+    for e in graph.all_arcs:
         print(e)

@@ -34,16 +34,16 @@ class Node:
         return self.__str__().__hash__()
 
 
-
 class Graph:
 
     def __init__(self, commodity: str):
         self.commodity = commodity
         self.nodes = set([])
-        self.arcs = []
+        self.all_arcs = []
+        self.trip_arcs = []
 
     def add_arc(self, arc: Arc):
-        self.arcs.append(arc)
+        self.all_arcs.append(arc)
         self.nodes.add(arc.origin_node)
         self.nodes.add(arc.destination_node)
 

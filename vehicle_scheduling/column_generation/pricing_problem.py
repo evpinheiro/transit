@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from vehicle_scheduling.graph.graph import Graph
 
 
-class Subproblem:
+class SubProblem:
 
     def __init__(self, garage_name):
         self.network = nx.DiGraph(name=garage_name)
@@ -12,7 +12,7 @@ class Subproblem:
     def build_network(self, graph: Graph):
         for node in graph.nodes:
             self.network.add_node(node, demand=node.demand, pos=(node.time*1000, node.position_station_representation))
-        for arc in graph.arcs:
+        for arc in graph.all_arcs:
             self.network.add_edge(arc.origin_node, arc.destination_node, weight=arc.cost,
                                   capacity=arc.capacity, original_events=arc, color='black')
             self.network.edges
@@ -33,13 +33,13 @@ class Subproblem:
 
     def execute(self):
         solution = nx.min_cost_flow(self.network)
-        print("networkx o-d | original event | cost")
+        print("----------------- networkx o-d | original event | cost ------------------")
         for node_origen in solution.keys():
             for node_destination in solution[node_origen].keys():
                 print(node_origen, node_destination, "|",
                       self.network[node_origen][node_destination]['original_events'], "|",
                       solution[node_origen][node_destination])
-        print("solution arcs")
+        print("-------------- solution arcs -----------------")
         for node_origen in solution.keys():
             for node_destination in solution[node_origen].keys():
                 if solution[node_origen][node_destination] > 0 or self.network[node_origen][node_destination]['capacity'] == 0:
@@ -47,7 +47,7 @@ class Subproblem:
                           self.network[node_origen][node_destination]['original_events'], "|",
                           solution[node_origen][node_destination])
                     self.network[node_origen][node_destination]['color'] = 'red' if solution[node_origen][node_destination] > 0 else 'green'
-        print("------------")
+        print("---------------------------------------------")
 
     def plot_network(self):
         edge_labels = {}

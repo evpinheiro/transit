@@ -1,21 +1,47 @@
 from deal_with_time import minutes
 from vehicle_scheduling.column_generation import pricing_problem
+from vehicle_scheduling.column_generation.master_problem import SetPartitioning, Variable
+from vehicle_scheduling.column_generation.pricing_problem import SubProblem
 from vehicle_scheduling.data_model.compatible_trips_rules import CompatibilityRules, LayoverTime, PossibleDeadheads, \
     PossibleLineConnections
 from vehicle_scheduling.data_model.scheduled_event import ScheduledTrip
 from vehicle_scheduling.data_model.transport_network import Deadhead, Itinerary
 from vehicle_scheduling.graph.building_connection_based_graph import build_graph
+from vehicle_scheduling.graph.commodities_trips import Commodity
 
 
 class BranchAndPrice:
 
-    def __init__(self, pricing_problems: list):
-        self.sub_problems = pricing_problems
-        print("*-------------*")
-        for element in self.sub_problems:
-            print(element.network)
-            print("-------------")
-        print("*-------------*")
+    def __init__(self, commodities: list, compatibilities_rules: CompatibilityRules):
+        self.commodities = commodities
+        self.compatibility_rules = compatibilities_rules
+        self.master_problem = None
+
+    def execute(self):
+        self.find_initial_solution()
+        pricing_problems = self.initialize()
+        while could_be_improved:
+            sigma, pi = self.solve_master_problem()
+
+    # pensar em como criar uma solução inicial independente da rede
+    # será que preciso ter uma lista com os arcos referentes às viagens?
+    # preciso
+    def find_initial_solution(self) -> SetPartitioning:
+        variables = []
+        for commodity in self.commodities:
+            for trip in commodity.trips:
+                variables.append(Variable()) ###
+        return SetPartitioning(variables, )
+
+
+    def initialize(self):
+        pricing_problems = []
+        for commodity in self.commodities:
+            graph = build_graph(commodity, self.compatibility_rules)
+            problem = pricing_problem.SubProblem(commodity.commodity_name)
+            problem.build_network(graph)
+            pricing_problems.append(problem)
+        return pricing_problems
 
 
 if __name__ == '__main__':
@@ -45,23 +71,26 @@ if __name__ == '__main__':
     trips2 = ScheduledTrip(minutes("09:00"), minutes("10:55"), itinerary_TISAN_TICEN_322)
     trips3 = ScheduledTrip(minutes("11:00"), minutes("12:20"), itinerary_TICEN_TICAN_221)
     trips4 = ScheduledTrip(minutes("09:00"), minutes("10:20"), itinerary_TICAN_TICEN_221)
-    trips = [trips1, trips2, trips3, trips4]
-    network_depot1 = build_graph('garage1-vehicleType1', 2, trips, compatibility_rules)
-    network_depot2 = build_graph('garage2-vehicleType1', 2, trips, compatibility_rules)
+    trips_garage1 = [trips1, trips2, trips3, trips4]
+    trips_garage2 = trips_garage1
+
+    # network_depot1 = build_graph(Commodity('garage1-vehicleType1', 2, trips_garage1), compatibility_rules)
+    # network_depot2 = build_graph(Commodity('garage2-vehicleType1', 2, trips_garage2), compatibility_rules)
     # network.arcs.sort(key=lambda _arc: _arc.origin_node.time)
     # for arc in network.arcs:
     #     print(arc)
 
-    subproblem_depot1 = pricing_problem.Subproblem('Depot1')
-    subproblem_depot2 = pricing_problem.Subproblem('Depot2')
+    # pricing_problem_depot1 = pricing_problem.SubProblem(network_depot1.commodity)
+    # pricing_problem_depot2 = pricing_problem.SubProblem('Depot2')
+    #
+    # pricing_problem_depot1.build_network(network_depot1)
+    # pricing_problem_depot2.build_network(network_depot2)
+    # # pricing_problem_depot1.update_arc_costs()
+    # pricing_problem_depot1.execute()
+    # pricing_problem_depot2.execute()
+    # pricing_problem_depot1.plot_network()
+    # pricing_problem_depot2.plot_network()
 
-    subproblem_depot1.build_network(network_depot1)
-    subproblem_depot2.build_network(network_depot2)
-    # subproblem_depot1.update_arc_costs()
-    subproblem_depot1.execute()
-    subproblem_depot2.execute()
-    # subproblem_depot1.plot_network()
-    # subproblem_depot2.plot_network()
-
-    branch_and_price = BranchAndPrice([subproblem_depot1, subproblem_depot2])
+    branch_and_price = BranchAndPrice([Commodity('garage1-vehicleType1', 2, trips_garage1),
+                                       Commodity('garage2-vehicleType1', 2, trips_garage2)], compatibility_rules)
 
