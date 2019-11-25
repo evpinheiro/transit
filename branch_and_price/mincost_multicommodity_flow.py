@@ -32,13 +32,15 @@ def multicommodity_minimum_cost_flow(graphs: list, common_arcs: list, integer: b
     modelo.flow_conservation = pe.Constraint(modelo.commodities_nodes_indexes, rule=conserva_fluxo)
 
     def capacidades_conjuntas(m, index):
-        soma = sum(m.var[(commodity.commodity_name, str(common_arcs[index]))] for commodity in graphs)
+        soma = sum(m.var[(commodity.commodity_name, str(common_arcs[index]))] for commodity in graphs
+                   if (commodity.commodity_name, str(common_arcs[index])) in modelo.var_indexes)
         return soma <= common_arcs[index].capacity
 
     modelo.capacidade_conjunta_arco = pe.Constraint(range(len(common_arcs)), rule=capacidades_conjuntas)
 
     def lower_bound_conjuntas(m, index):
-        soma = sum(m.var[(commodity.commodity_name, str(common_arcs[index]))] for commodity in graphs)
+        soma = sum(m.var[(commodity.commodity_name, str(common_arcs[index]))] for commodity in graphs
+                   if (commodity.commodity_name, str(common_arcs[index])) in modelo.var_indexes)
         return common_arcs[index].lower_bound <= soma
 
     modelo.lower_bound_conjunta_arco = pe.Constraint(range(len(common_arcs)), rule=lower_bound_conjuntas)
@@ -117,7 +119,7 @@ graph_1 = Graph('1', {node_trip1_o: 0, node_trip1_d: 0, node_trip2_o: 0, node_tr
                  arc_trip1d_trip2o: (1, 2), arc_trip3d_trip4o: (1, 2),
                  arc_depot_standing1: (1, 2), arc_depot_standing2: (1, 2), arc_depot_standing3: (1, 2),
                  arc_depot_standing4: (1, 2), arc_depot_standing5: (1, 2), arc_depot_standing6: (1, 2),
-                 arc_depot_standing7: (1, 2), arc_returning: (1, 2)})
+                 arc_depot_standing7: (1, 2), arc_returning: (1, 1)})
 
 # graph_2 = Graph('2', {node_trip1_o: 0, node_trip1_d: 0, node_trip2_o: 0, node_trip2_d: 0,
 #                       node_trip3_o: 0, node_trip3_d: 0, node_trip4_o: 0, node_trip4_d: 0,
@@ -136,21 +138,20 @@ graph_1 = Graph('1', {node_trip1_o: 0, node_trip1_d: 0, node_trip2_o: 0, node_tr
 
 arc_depot_standingA = Arc(node_pull_out_trip1, node_pull_in_trip1, 2)
 arc_depot_standingB = Arc(node_pull_in_trip1, node_pull_out_trip3, 2)
-arc_depot_standingC = Arc(node_pull_out_trip1, node_pull_in_trip3, 2)
+arc_depot_standingC = Arc(node_pull_out_trip3, node_pull_in_trip3, 2)
 arc_depot_standingD = Arc(node_pull_in_trip3, node_pull_out_trip4, 2)
 arc_depot_standingE = Arc(node_pull_out_trip4, node_pull_in_trip4, 2)
 arc_depot_standingF = Arc(node_pull_in_trip4, node_pull_out_trip1, 2)
-graph_2 = Graph('1', {node_trip1_o: 1, node_trip1_d: -1,
-                      node_trip3_o: 1, node_trip3_d: -1, node_trip4_o: 1, node_trip4_d: -1,
+graph_2 = Graph('2', {node_trip1_o: 0, node_trip1_d: 0,
+                      node_trip3_o: 0, node_trip3_d: 0, node_trip4_o: 0, node_trip4_d: 0,
                       node_pull_out_trip1: 0, node_pull_in_trip1: 0, node_pull_out_trip3: 0, node_pull_in_trip3: 0,
                       node_pull_out_trip4: 0, node_pull_in_trip4: 0},
-                {arc_trip1: (1, 0), arc_trip3: (1, 0), arc_trip4: (1, 0),
+                {arc_trip1: (1, 1), arc_trip3: (1, 1), arc_trip4: (1, 1),
                  arc_pull_out_trip1: (1, 2), arc_pull_in_trip1: (1, 2), arc_pull_out_trip3: (1, 2),
                  arc_pull_in_trip3: (1, 2), arc_pull_out_trip4: (1, 2), arc_pull_in_trip4: (1, 2),
-                 arc_trip1d_trip3o: (1, 2), arc_trip2d_trip4o: (1, 2),
-                 arc_trip3d_trip4o: (1, 2),
+                 arc_trip1d_trip3o: (1, 2), arc_trip3d_trip4o: (1, 2),
                  arc_depot_standingA: (1, 2), arc_depot_standingB: (1, 2), arc_depot_standingC: (1, 2),
-                 arc_depot_standingD: (1, 2), arc_depot_standingE: (1, 2), arc_depot_standingF: (1, 2)})
+                 arc_depot_standingD: (1, 2), arc_depot_standingE: (1, 2), arc_depot_standingF: (1, 1)})
 
 graph_list = [graph_1, graph_2]
 
