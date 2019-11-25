@@ -1,6 +1,7 @@
 from deal_with_time import hour_minute
 from rostering.model.workday import Workday
 
+# https://towardsdatascience.com/modeling-and-optimization-of-a-weekly-workforce-with-python-and-pyomo-29484ba065bb
 
 class WorkdaySequence:
 

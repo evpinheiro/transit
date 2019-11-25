@@ -30,9 +30,8 @@ class BranchAndPrice:
         variables = []
         for commodity in self.commodities:
             for trip in commodity.trips:
-                variables.append(Variable()) ###
+                variables.append(Variable())  ###
         return SetPartitioning(variables, )
-
 
     def initialize(self):
         pricing_problems = []
@@ -93,4 +92,3 @@ if __name__ == '__main__':
 
     branch_and_price = BranchAndPrice([Commodity('garage1-vehicleType1', 2, trips_garage1),
                                        Commodity('garage2-vehicleType1', 2, trips_garage2)], compatibility_rules)
-
