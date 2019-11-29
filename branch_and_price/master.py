@@ -1,3 +1,5 @@
+from enum import Enum
+
 import pyomo.environ as pe
 import pyomo as pyo
 import logging
@@ -5,35 +7,47 @@ import logging
 
 class Variable:
 
-    def __init__(self, cost: int, commodity: str, scheduled_trips):
+    def __init__(self, cost: int, commodity: str, scheduled_trips, arc_paths):
         # self.index = None
         self.cost = cost
         self.commodity = commodity
         self.scheduled_trips = scheduled_trips
+        self.paths = arc_paths
+
+
+class ConstraintType(Enum):
+    PARTITIONING = 'partitioning_constraint'
+    CONVEXITY = 'convexity_constraint'
 
 
 class SetPartitioning:
 
-    def __init__(self, initial_variables_by_commodity, scheduled_trips):
+    def __init__(self, variables_by_commodity, scheduled_trips):
         logging.getLogger('pyomo.core').setLevel(logging.ERROR)
         self.solver = pyo.opt.SolverFactory('cbc')
-        self.results = "NotExecuted"
+        self.results = 'NotExecuted'
         self.model = pe.ConcreteModel('master_problem')
         indexes = []
         self.cost_vector = {}
-        for commodity in initial_variables_by_commodity.keys():
-            for index, var in enumerate(initial_variables_by_commodity[commodity]):
-                var.index = (commodity, str(index))
-                indexes.append(var.index)
-                self.cost_vector[var.index] = var.cost
+        self.variables = {}
+        self.commodities = []
+        for commodity in variables_by_commodity.keys():
+            self.commodities.append(commodity)
+        for commodity in self.commodities:
+            for index, var in enumerate(variables_by_commodity[commodity]):
+                index = (commodity, str(index))
+                indexes.append(index)
+                self.variables[index] = var
+                self.cost_vector[index] = var.cost
         self.model.DK = indexes
         self.model.var_lambda = pe.Var(self.model.DK, domain=pe.NonNegativeReals)
         self.model.obj = pe.Objective(expr=sum(self.cost_vector[dk] * self.model.var_lambda[dk]
                                                for dk in self.model.DK), sense=pe.minimize)
         self.model.dual = pe.Suffix(direction=pe.Suffix.IMPORT)
         # self.model.rc = pe.Suffix(direction=pe.Suffix.IMPORT_EXPORT)
-        self.set_partitioning_constraints(scheduled_trips, initial_variables_by_commodity)
-        self.set_convexity_constraints(initial_variables_by_commodity)
+        self.scheduled_trips = scheduled_trips
+        self.set_partitioning_constraints(variables_by_commodity)
+        self.set_convexity_constraints()
 
     def add_upper_bound(self, var_index, bound_value):
         self.model.constraints.add(self.model.var_lambda[var_index] <= bound_value)
@@ -41,20 +55,24 @@ class SetPartitioning:
     def add_lower_bound(self, var_index, bound_value):
         self.model.constraints.add(self.model.var_lambda[var_index] >= bound_value)
 
-    def set_partitioning_constraints(self, scheduled_trips: list, initial_variables_by_commodity):
+    def set_partitioning_constraints(self, initial_variables_by_commodity):
         self.model.partitioning_constraint = pe.ConstraintList()
-        for trip in scheduled_trips:
+        for trip in self.scheduled_trips:
             the_sum = sum(self.model.var_lambda[dk] for dk in self.model.DK
                           if initial_variables_by_commodity[dk[0]][int(dk[1])].scheduled_trips.__contains__(trip))
             if type(the_sum) is not int:
                 self.model.partitioning_constraint.add(
                     expr=the_sum == 1)
 
-    def set_convexity_constraints(self, initial_variables_by_commodity):
+    def set_convexity_constraints(self):
         self.model.convexity_constraint = pe.ConstraintList()
-        for commodity in initial_variables_by_commodity.keys():
-            self.model.convexity_constraint.add(
-                expr=sum(self.model.var_lambda[dk] for dk in self.model.DK if dk[0] == commodity) == 1)
+        for commodity in self.commodities:
+            if int(commodity) > 0:  # TODO não depender desse código
+                self.model.convexity_constraint.add(
+                    expr=sum(self.model.var_lambda[dk] for dk in self.model.DK if dk[0] == commodity) == 1)
+
+    def add_new_variable(self, variable):
+        pass
 
     def execute(self):
         self.results = self.solver.solve(self.model)
@@ -74,7 +92,7 @@ class SetPartitioning:
     def get_solution(self):
         if not self.is_feasible():
             return self.results.solver.status
-        return [self.model.var_lambda[dk]() for dk in self.model.DK]
+        return [self.variables[dk] for dk in self.model.DK if self.model.var_lambda[dk]() > 0]
 
     def evaluate_solution(self, solution):
         return sum(self.cost_vector[dk] * solution[dk] for dk in self.model.DK)
@@ -85,10 +103,11 @@ class SetPartitioning:
         duals_by_constraint_by_class = {}
         for constraints in self.model.component_objects(pe.Constraint, active=True):
             constraint_class = constraints.name
-            duals_by_constraint_by_class[constraint_class] = []
+            duals_by_constraint_by_class[constraint_class] = {}
             for i, constraint in constraints.items():
-                # name = constraint.name
-                duals_by_constraint_by_class[constraint_class].insert(i, self.model.dual[constraint])
+                duals_by_constraint_by_class[constraint_class][
+                    self.scheduled_trips[i - 1] if constraint_class == ConstraintType.PARTITIONING.value
+                    else self.commodities[i - 1]] = self.model.dual[constraint]
         return duals_by_constraint_by_class
 
     def get_reduced_cost(self):
