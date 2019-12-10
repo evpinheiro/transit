@@ -122,12 +122,12 @@ class SetPartitioning:
 
 if __name__ == '__main__':
     trips = ['trip1', 'trip2', 'trip3', 'trip4', 'trip5']
-    lambda_k1_d1 = Variable(0, "D1", [])
-    lambda_k2_d1 = Variable(23, "D1", [trips[1], trips[2], trips[3]])
-    lambda_k3_d1 = Variable(14, "D1", [trips[0], trips[1]])
-    lambda_k1_d2 = Variable(33, "D2", [trips[0], trips[1], trips[2], trips[3], trips[4]])
-    lambda_k2_d2 = Variable(12, "D2", [trips[3], trips[4]])
-    lambda_k3_d2 = Variable(11, "D2", [trips[0], trips[4]])
+    lambda_k1_d1 = Variable(0, "D1", [], [])
+    lambda_k2_d1 = Variable(23, "D1", [trips[1], trips[2], trips[3]], [])
+    lambda_k3_d1 = Variable(14, "D1", [trips[0], trips[1]], [])
+    lambda_k1_d2 = Variable(33, "D2", [trips[0], trips[1], trips[2], trips[3], trips[4]], [])
+    lambda_k2_d2 = Variable(12, "D2", [trips[3], trips[4]], [])
+    lambda_k3_d2 = Variable(11, "D2", [trips[0], trips[4]], [])
 
     # trips = ['trip1', 'trip2', 'trip3', 'trip4']
     # lambda_k0_d1 = Variable(0, "D1", [])
@@ -145,8 +145,8 @@ if __name__ == '__main__':
     #
     # relax = SetPartitioning(initial_vars, trips)
 
-    initial_vars = {"D2": [Variable(100, "D1", [])],
-                    "D1": [Variable(100, "D2", [])]}
+    initial_vars = {"2": [Variable(100, "2", [], [])],
+                    "1": [Variable(100, "1", [], [])]}
     relax = SetPartitioning(initial_vars, trips)
 
     relax.execute()

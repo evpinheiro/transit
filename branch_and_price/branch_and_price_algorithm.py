@@ -6,23 +6,28 @@ from deal_with_time import minutes
 
 class BranchAndPrice:
 
-    def __init__(self, commodities_graphs: list, all_trips_arc: list):
+    def __init__(self, commodities_graphs: list, all_trips_arc: list, first_basic_solution=None):
         self.all_trips_arcs_codes = all_trips_arc  # TODO getting the trips from the graphs
         self.commodities_graphs = commodities_graphs
         self.all_columns = []
-        self.master_problem = None
+        self.master_problem = first_basic_solution
 
     def execute(self):
         pricing_problems = self.initialize()
-        self.all_columns = self.find_initial_solution(pricing_problems)
-        self.update_master_problem()
+        if self.master_problem is None:
+            self.all_columns = self.find_initial_solution(pricing_problems)
+            self.update_master_problem()
+        else:
+            self.master_problem.execute()
+            self.all_columns.extend(self.master_problem.get_solution())
         self.column_generation(pricing_problems)
         # could_be_improved = True
         # while could_be_improved:
         #     sigma, pi = self.solve_master_problem()
         result = self.master_problem.get_solution()
         for var in result:
-            print(var)
+            var.paths.sort(key=lambda arc: arc.origin.time)
+            print(var.commodity, [arc.get_code() for arc in var.paths])
 
     def find_initial_solution(self, princing_problems):
         initial_vars = self.get_artificial_variables()
@@ -57,7 +62,6 @@ class BranchAndPrice:
     def column_generation(self, princing_problems):
         stop = False
         while not stop:
-            self.master_problem.execute()
             duals_by_constraint_by_class = self.master_problem.get_dual()
             sigma = duals_by_constraint_by_class.get(ConstraintType.CONVEXITY.value)
             pi = duals_by_constraint_by_class.get(ConstraintType.PARTITIONING.value)
@@ -65,6 +69,7 @@ class BranchAndPrice:
             if len(new_columns) > 0:
                 self.all_columns.extend(new_columns)
                 self.update_master_problem()
+                self.master_problem.execute()
             else:
                 stop = True
 
@@ -73,8 +78,8 @@ class BranchAndPrice:
         for pricing in princing_problems:
             pricing.update_arc_costs(pi)
             pricing.execute()
-            # pricing.print_solution()
-            if -sigma[pricing.network.name]+pricing.total_cost < 0:
+            pricing.print_solution()
+            if -sigma[pricing.network.name] + pricing.total_cost < 0:
                 new_columns.append(
                     self.build_new_column(pricing.network.name,
                                           pricing.get_original_cost(),
@@ -178,7 +183,19 @@ if __name__ == '__main__':
                      arc_depot_standingA: (1, 2), arc_depot_standingB: (1, 2), arc_depot_standingC: (1, 2),
                      arc_depot_standingD: (1, 2), arc_depot_standingE: (1, 2), arc_returning: (1, 1)})
 
+    first_var_graph1 = Variable(9, '1', [arc_trip1.get_code(), arc_trip3.get_code()],
+                                [arc_pull_out_trip1, arc_trip1, arc_trip1d_trip3o, arc_trip2, arc_pull_in_trip3,
+                                 arc_depot_standing5, arc_depot_standing6, arc_depot_standing7, arc_returning])
+
+    first_var_graph2 = Variable(9, '2', [arc_trip2.get_code(), arc_trip4.get_code()],
+                                [arc_depot_standing1, arc_depot_standing2, arc_depot_standing3, arc_pull_out_trip2,
+                                 arc_trip2, arc_trip2d_trip4o, arc_pull_in_trip4, arc_returning])
+
+    first_basic_solution = SetPartitioning({'1': [first_var_graph1], '2': [first_var_graph2]},
+        [arc_trip1.get_code(), arc_trip2.get_code(), arc_trip3.get_code(), arc_trip4.get_code()])
+
     branch_and_price = BranchAndPrice([graph_1, graph_2],
                                       [arc_trip1.get_code(), arc_trip2.get_code(),
-                                       arc_trip3.get_code(), arc_trip4.get_code()])
+                                       arc_trip3.get_code(), arc_trip4.get_code()],
+                                      first_basic_solution)
     branch_and_price.execute()
