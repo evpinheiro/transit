@@ -13,6 +13,7 @@ class Variable:
         self.commodity = commodity
         self.scheduled_trips = scheduled_trips
         self.paths = arc_paths
+        self.value = None
 
 
 class ConstraintType(Enum):
@@ -92,6 +93,8 @@ class SetPartitioning:
     def get_solution(self):
         if not self.is_feasible():
             return self.results.solver.status
+        for dk in self.model.DK:
+            self.variables[dk].value = self.model.var_lambda[dk]()
         return [self.variables[dk] for dk in self.model.DK if self.model.var_lambda[dk]() > 0]
 
     def evaluate_solution(self, solution):

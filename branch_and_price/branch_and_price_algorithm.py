@@ -27,7 +27,7 @@ class BranchAndPrice:
         result = self.master_problem.get_solution()
         for var in result:
             var.paths.sort(key=lambda arc: arc.origin.time)
-            print(var.commodity, [arc.get_code() for arc in var.paths])
+            print(var.value, var.commodity, [arc.get_code() for arc in var.paths])
 
     def find_initial_solution(self, princing_problems):
         initial_vars = self.get_artificial_variables()
