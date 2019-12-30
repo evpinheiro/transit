@@ -26,7 +26,7 @@ class ArcType(Enum):
 
 
 class Arc:
-    def __init__(self, arc_type: str, origin: Node, destination: Node, upper_bound: int, lower_bound=0):
+    def __init__(self, arc_type: ArcType, origin: Node, destination: Node, upper_bound: int, lower_bound=0):
         self.arc_type = arc_type
         self.origin = origin
         self.destination = destination
@@ -37,7 +37,7 @@ class Arc:
         return self.origin.get_code() + "-" + self.destination.get_code()
 
     def __str__(self):
-        return str(self.origin) + "-" + str(self.destination)
+        return str(self.origin) + "-" + str(self.destination) + '-' + self.arc_type.value
 
 
 class Graph:
